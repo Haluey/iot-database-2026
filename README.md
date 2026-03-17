@@ -199,13 +199,13 @@
 
 - SQL 종류
 
-    - Data Manipulation Language - 데이터 조작어. `SELECT`, `INSERT`, `UPDATE`, `DELETE`와 같은 데이터를 조작하는 언어.
+    - `Data Manipulation Language` - 데이터 조작어. `SELECT`, `INSERT`, `UPDATE`, `DELETE`와 같은 데이터를 조작하는 언어.
 
-    - Data Definition Language - 데이터 정의어. `CREATE`, `ALTER`, `RENAME`, `DROP` 같은 객체(데이터베이스, 테이블, 사용자, 뷰, 인덱스 등)를 처리하는 언어.
+    - `Data Definition Language` - 데이터 정의어. `CREATE`, `ALTER`, `RENAME`, `DROP` 같은 객체(데이터베이스, 테이블, 사용자, 뷰, 인덱스 등)를 처리하는 언어.
 
-    - Data Control Language - 데이터 제어어. `GRANT`, `REVOKE` 와 같이 사용자에게 권한주고 해제하는 기능을 처리하는 언어.
+    - `Data Control Language` - 데이터 제어어. `GRANT`, `REVOKE` 와 같이 사용자에게 권한주고 해제하는 기능을 처리하는 언어.
 
-    - Transaction Control Language - 트랜잭션 제어어, `BEGIN TRAN`, `COMMIT`, `ROLLBACK` 같은 트랜잭션 처리로 동시성 제어를 위한 언어.
+    - `Transaction Control Language` - 트랜잭션 제어어, `BEGIN TRAN`, `COMMIT`, `ROLLBACK` 같은 트랜잭션 처리로 동시성 제어를 위한 언어.
 
 
 ### SELECT 실습
@@ -238,7 +238,7 @@
     SELECT *|열이름 나열
       FROM 테이블명
      WHERE 조건...  -- 옵션(필수 X)
-      ORDER BY 열1, 열2 ASC|DESC;
+     ORDER BY 열1, 열2 ASC|DESC;
     ```
 
 ## 2일차
@@ -336,6 +336,8 @@
 - JOIN - 관계형 DB의 핵심기능 - [쿼리](./day02/3.JOIN.sql)
     - 두 개 이상의 테이블을 합쳐서 하나의 테이블처럼 보여주는 기법
 
+    ![alt text](image-15.png)
+
 - JOIN 종류 - 종류는 많으나 3가지만 알면 됨
     - INNER JOIN(내부 조인) - 조인 중에서 가장 간단한 조인. 컬럼이 일치하는 데이터만 조회. 기준 테이블 없음. 조인되는 테이블 간의 관계 확인
     - OUTER JOIN(외부 조인) - 한 테이블 기준으로 데이터가 일치하지 않는 데이터까지 나오도록 조회하는 조인
@@ -348,19 +350,141 @@
     - 서브쿼리는 소괄호 안의 쿼리부터 먼저 작성
     - 메인쿼리 - 소괄호 밖의 쿼리
     - 서브쿼리 - 소괄호 안의 쿼리
+    - 대부분이 조인으로 변경 가능
+    - 조인이 가지고 있는 성능 개선의 특징을 사용못하기 때문에 속도저하가 발생할 가능성 높음
+    - 조인을 많이 사용한다면, 서브쿼리는 필요할 때만 사용
 
 ## 3일차
 
 ### SELECT 실습
 
+- DB 기본타입 - 문자열, 숫자(정수, 실수), 날짜시간
+
 #### 서브쿼리 계속
+
+- 서브쿼리 종류 - [쿼리](./day03/1.SUBQUERY.sql)
+    - WHERE절 서브쿼리
+    - FROM절 서브쿼리
+    - SELECT절 서브쿼리
 
 #### 집합연산
 
+- 두 테이블 합치기 - [쿼리](./day03/2.UNION.sql)
+    - UNION - 중복제거 합집합
+    - UNION ALL - 중복표시 합집합
+
+#### GROUP BY 추가 기능
+
+- GROUP BY 컬럼 WITH ROLLUP - 전체 합산 추출 - [쿼리](./day03/3.ROLLUP.sql)
+    - ROLLUP을 안쓰면 쿼리가 아주 길어짐
+
 ### DML 기타
+
+- [쿼리](./day03/4.DML기타.sql)
+- DML 중에서 직접적인 트랜잭션 영향을 받지 않는 것은 SELECT 뿐
 
 #### INSERT
 
+- 테이블에 데이터를 삽입하는 쿼리
+- 트랜잭션의 영향을 받음
+
+    ```sql
+    INSERT INTO 테이블명 (컬럼1, ... 컬럼n )
+    VALUES (컬럼1 값, ... 컬럼n 값);
+    ```
+
+- UPDATE나 DELETE와 달리 큰 문제가 발생하지 않음
+- 잘못 입려되면 지우면 됨
+
 #### UPDATE
 
+- 테이블에 존재하는 데이터를 수정하는 쿼리
+- 트랜잭션의 영향을 받음
+- 수정은 매우 신중
+
+    ```sql
+    UPDATE 테이블명
+       SET 변경 컬럼1 = 변경 값1
+         , 변경 컬럼2 = 변경 값2
+         , ...
+         , 변경 컬럼n = 변경 값n
+     WHERE 구분 컬럼 = 구분 값;
+    ```
+
 #### DELETE
+
+- 테이블에 존재하는 데이터를 삭제하는 쿼리
+- 트랜잭션의 영향을 받음
+- 삭제는 매우 신중
+
+    ```sql
+    DELETE FROM 테이블명
+     WHERE 구분 컬럼 = 구분 값;
+    ```
+
+#### 트랜잭션 처리
+
+- UPDATE, DELETE, (INSERT 포함) 처리오류가 발생하면 복구할 수 있는 기능 존재
+- 8장에서 다룰 예정
+
+### DDL
+
+- 객체 생성하고 수정, 삭제하는 기능을 하는 SQL언어
+
+#### MySQL 데이터타입
+
+- `BOOL` - true/false
+- TINYINT, SMALLINT - 1byte(255개), 2byte
+    - `TINYINT(1) `- 1/0
+- `INT` - 4byte(가장 기본)
+- `BIGINT` - 8byte
+- FLOAT - 4byte, 소수점
+- DOUBLE - 8byte, 소수점, 예전에 많이 사용
+- `DECIMAL(m, n)` - m 전체 65자리수, n 소수점 최대 30자리수
+    - 정수가 35자리, 소수점 30자리인 아주 큰 수
+    - 현재 가장 많이 사용되는 숫자타입
+- DATE - 날짜만, 2026-03-17
+- `DATETIME` - 날짜와 시간 모두, 2026-03-17 16:28:56.092
+- CHAR(n) - 고정길이 문자열, n만큼 길이 지정
+    - CHAR(10)에 'Hello'입력하면 'Hello     '로 저장
+    - 나머지 5자리 스페이스로 채움
+    - 주민번호, 공통코드처럼 정확한 길이 입력 필요할 때
+- VARCHAR(n) - 가변길이 문자열, n만큼 길이 지정
+    - VARCHAR(10)은 'Hello' 로 저장. 나머지 5자리는 없앰
+    - 길이를 넘어서는 문자열은 입력되지 않음(잘림)
+    - CHAR, VARCHAR는 길이를 여유있게 설정
+- `TEXT`, LONGTEXT - 아주 긴 문자열, 2 ~ 4GB
+- `BLOB`, LONGBLOB - 바이너리로 저장되는 큰 데이터, 2 ~ 4GB
+
+
+#### CREATE
+
+- DB객체를 생성하는 쿼리 - [쿼리](./day03/5.DDL.sql)
+- 데이터베이스, 테이블, 뷰, 인덱스 등 주요 객체 생성 가능
+
+    ```sql
+    -- 테이블 생성
+    CREATE TABLE 테이블명(
+        컬럼1 이름 데이터타입 제약조건,
+        컬럼2 이름 데이터타입 제약조건,
+        ...
+        컬럼n 이름 데이터타입 제약조건,
+        [각 제약조건 독립적으로 작성]
+    );
+
+    -- 데이터베이스 생성
+    CREATE DATEBASE 데이터베이스명;
+
+    -- 사용자 생성
+    CREATE USER 사용자명 IDENTIFIED BY 비번;
+
+    -- ...
+    ```
+
+## 4일차
+
+### DDL 계속
+
+#### ALTER
+
+#### DROP

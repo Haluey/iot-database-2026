@@ -11,3 +11,8 @@ SELECT b1.bookname
   FROM Book b1
  WHERE b1.price >= (SELECT MAX(b.price)
   					  FROM Book b);
+
+SELECT b.bookname
+  FROM Book b
+ WHERE b.price = (SELECT MAX(price)
+  					 FROM Book);

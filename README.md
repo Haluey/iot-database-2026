@@ -483,8 +483,71 @@
 
 ## 4일차
 
+### MySQL 샘플DB
+
+- 샘플DB
+    - https://dev.mysql.com/doc/index-other.html?ref=dbwriter.io
+    - https://www.mysqltutorial.org/getting-started-with-mysql/mysql-sample-database/
+
+- Sakila-db : MySQL버전 충돌로 현재 사용불가
+
+### DML 추가
+
+- INSERT INTO 대량 삽입 - MySQL 방법
+
+    ```sql
+    INSERT INTO 테이블명 VALUES(컬럼1 값, 컬럼2 값, ..., 컬럼n 값),
+    (컬럼1 값, 컬럼2 값, ..., 컬럼n 값),
+    (컬럼1 값, 컬럼2 값, ..., 컬럼n 값),
+    ...
+    (컬럼1 값, 컬럼2 값, ..., 컬럼n 값);
+    ```
+
 ### DDL 계속
+
+#### 제약조건 개요
+
+- 데이터베이스에 정확한 데이터가 들어갈 수 있도록, 테이블 각 컬럼별 입력가능한 데이터를 지정하는 것
+- 무결성을 벗어나는 데이터는 못들어가도록 제약(제한)을 주는 것
+- 종류 : `기본키(Primary Key)`, 단일(Unique), 널허용여부(Null), 체크(Check), 기본값(Default), `외래키(Foreign Key)`
+
+#### CREATE 계속
+
+- CREATE 구문
+    - PRIMARY KEY (컬럼 1 또는 여러 개)
+    - FOREIGN KEY (custid) REFERENCES NewCustomer(custid) ON DELETE CASCADE
+        - REFERENCES : 참조하는 부모테이블과 PK컬럼
+        - ON DELETE CASCADE : 무결성 유지를 위해서 부모 테이블의 해당 PK데이터를 삭제하면 자식테이블 관련 FK데이터도 같이 삭제하는 옵션
+        - ON DELETE SET NULL : 부모 테이블의 PK값이 삭제되면, 자식테이블의 FK값은 NULL로 변경한다
+        - ON UPDATE CASCADE|SET NULL : 수정할 때도 삭제 시와 유사한 처리 가능. 수정도 가능하지만, PK 수정이 거의 없기 때문에 많이 사용되지 않음
+
+- AUTO_INCREMENT : 테이블에 데이터 삽입할 때 숫자타입 PK의 값을 자동 증가시켜서 만들어주는 기능
+    - PK 컬럼은 INSERT 문에서 생략
 
 #### ALTER
 
+- ALTER
+    - 객체 수정, 테이블 외에서는 많이 사용안됨
+
+    ```sql
+    ALTER TABLE 테이블명
+        [ADD 속성명 데이터타입]
+        [DROP CULUMN 속성명]
+        [MODIFY 속성명 데이터타입]
+        [MODIFY 속성명 [NULL|NOT NULL]]
+        [ADD PRIMARY KEY(컬럼명)]
+        [[ADD|DROP] 제약조건명]
+    ```
+
 #### DROP
+
+- DROP
+    - 객체 삭제
+    - 테이블에서는 관계를 맺고있는 자식테이블 먼저 삭제 후 부모테이블 삭제 가능
+
+    ```sql
+    DROP 객체 객체명
+    ```
+
+### 내장함수
+

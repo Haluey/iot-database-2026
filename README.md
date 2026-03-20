@@ -661,22 +661,209 @@
 ### 트랜잭션, 동시성제어
 
 - TCL
+    - Transaction Control Language에 포함된 `START TRANSACTION`, `COMMIT`, `ROLLBACK`, `SAVEPOINT` 학습
+
+#### Transaction
+
+- `트랜잭션`
+    - 일을 처리하는 논리적인 단위 그룹
+    - 여러 쿼리들이 실행되어 완성되는 하나의 논리 그룹처리 단위
+
+- 계좌이체 예시 - A가 B에게 100만원 보낸다
+    1. A의 계좌에서 100만원 차감
+    2. B의 계좌에 100만원 추가
+    3. 1번만 실행되고 2번이 실패하면, 돈이 사라짐(X)
+    4. 2번만 실행되고 1번이 실패하면, 돈이 복사됨(X)
+
+- 트랜잭션 4가지 특징(`ACID`)
+    - 원자성(Atomicity) : 전부 성공 OR 전부 실패(All or Nothing). 중간상태 없음
+    - 일관성(Consistency) : 처리 전후로 데이터 규칙이 유지됨. 전체 합은 변경없음
+    - 격리성(Isolation) : 여러 사람이 동시에 처리해도 서로 영향이 없음
+    - 지속성(Durability) : 성공한 처리는 절대 사라지지 않음
+
+#### DBeaver 툴 트랜잭션 설정
+
+- DBeaver 기본적으로 트랜잭션을 사용못하게 되어 있음 - Auto Commit설정 중
+
+    ![alt text](image-16.png)
+
+    - Manual Commit으로 변경 후 테스트
+
+- 환경 설정 > 연결 > 연결 유형 아래 `Auto-commit by default` 체크해제 -> 트랜잭션 사용모드
+
+    ![alt text](image-17.png)
+
+    - 단, Auto-commit을 끄면 SQL에디터마다 커밋, 롤백을 물어봄
+
+- 트랜잭션 모드 > Smart commit mode 체크
+
+    ![alt text](image-22.png)
+
+    - Smart commit mode가 활성화 안되면 단순 SELECT 쿼리만 실행해도 트랜잭션이 걸림
+    - 불편함을 없애기 위해서 Smart commit mode를 활성화, 사용할 것
+
+#### 트랜잭션 쿼리
+
+- 기본 - [쿼리](./day06/1.TRANSACTION.sql)
+    ```sql
+    START TRANSACTION; -- 1. 트랜잭션 로직에 진입
+
+    -- 여러가지 쿼리 실행
+
+    COMMIT; -- 2. 성공했으면 모두 저장!
+    ROLLBACK;   -- 3. 실패했으면 원상복구
+    ```
+
+- 세이브포인트 - [쿼리](./day06/2.SAVEPOINT.sql)
+    ```sql
+    -- 트랜잭션 중
+    SAVEPOINT sp명;
+
+    -- 여러가지 쿼리 실행
+
+    -- 오류가 발생하면
+    ROLLBACK TO sp명;
+
+    COMMIT;
+    ```
+
+#### 동시성 제어
+
+- 개요
+    - 여러 트랜잭션이나 프로세스가 동시에 실행될 때 데이터의 일관성을 유지하면서 처리하는 것
+    - Lock, Isolation Level, NVCC 등 동시성 제어 기법 사용
+
+        ![alt text](image-20.png)
+
+        ![alt text](image-21.png)
+
+- 행 단위 락(Row Lock) - 일반적인 락 - [쿼리](./day06/3.동시성제어_세션1.sql), [쿼리2](./day06/4.동시성제어_세션2.sql)
+    - 세션 1번이 특정 테이블의 데이터를 UPDATE나 DELETE시 트랜잭션을 종료하지 않으면
+    - 세션 2번이 같은 테이블의 데이터를 UPDATE나 DELETE 할 수 없음
+
+    - 락 걸린 상태
+    ![alt text](image-18.png)
+
+    - 50초 후 락 상태 해제
+    ![alt text](image-19.png)
+
+    - 서로 다른 행 데이터를 편집할 때는 락이 걸리지 않음
+
+- 테이블 락(Table Lock)
+    - 테이블 전체를 락. 행 단위 락과 달리 COMMIT, ROLLBACK을 처리할 수 없음
+    - Unlock으로 테이블 락을 해제해야 함.
+    - 데드락 5분 가량 지속
+
+- `격리수준` - 동시 여러 트랜잭션이 실행될 때 서로의 데이터에 얼마나 영향을 줄지 제어하는 기준
+    - 최하 - Read Uncommitted. 커밋되지 않은 데이터 읽을 수 있음(사용 안 함)
+    - 중간 - Read Committed. 커밋된 데이터만 읽음
+    - 기본 - `Repeatable Read`. MySQL 기본값. 같은 트랜잭션 안에서는 항상 같은 결과
+    - 최고 - Serializable. 순차적 실행. 동시성 거의 없음. 안전하지만 성능 최악
+
+- 동시성 제어문제
+    - Dirty Read - 다른 트랜잭션이 아직 커밋하지 않은 데이터를 읽는 현상
+    - Non-Repeatable Read - 같은 트랜잭션 안에서 같은 데이터를 두 번 읽었을 때 결과가 다른 현상
+    - Phantom Read - 같은 조건으로 두 번 조회시 행 개수가 달라지는 현상
+
+- 격리수준과 동시성 제어 정리
+
+    |격리수준|Dirty Read|Non-Repeatable Read|Phantom Read|
+    |:--|:--:|:--:|:--:|
+    |Read Uncommitted|가능|가능|가능|
+    |Read Committed|방지|가능|가능|
+    |`Repeatable Read`|방지|방지|일부 방지|
+    |Serializable|방지|방지|방지|
+
+- 데드락
+    - MySQL은 데드락이 오래 걸리지 않도록 50초 후 데드락을 풀어버림
+    - 트랜잭션이 종료된 것은 아니므로 다른 세션에서 COMMIT이나 ROLLBACK을 수행해야 함
+    - 트랜잭션을 짧게 유지할 것
+    - 테이블 락은 사용 최소화
+
+- 트랜잭션 확인 쿼리(관리자용)
+
+    ```sql
+    SELECT * FROM information_schema.INNODB_TRX it;
+    ```
 
 ### 보안 및 관리
 
 #### 사용자
 
-- DDL 일부
+- 사용자 생성 및 삭제 - [쿼리](./day06/5.USER_GRANT.sql)
+    - 데이터베이스를 사용할 계정을 생성 쿼리, DDL
+    - @이후 'localhost' 내부접속용, '%' 외부접속용
+
+    ```sql
+    -- 사용자 생성
+    CREATE USER '사용자명'@'localhost|%' IDENTIFIED BY '비밀번호';
+
+    -- 사용자 비밀번호 변경
+    ALTER USER '사용자명'@'localhost|%' IDENTIFIED BY 'my123456';
+
+    -- 사용자 삭제
+    DROP USER '사용자명';
+    ```
 
 #### 권한
 
-- DCL
+- 사용자에게 권한 부여 및 해제, DCL
+    - 대부분 관리자가 수행
+    - GRANT, REBOKE
+
+    ```sql
+    -- 권한 부여
+    GRANT ALL PRIVILEGES ON 데이터베이스.* TO '사용자명'@'localhost|%';
+
+    -- 특정권한 부여
+    GRANT SELECT, INSERT, UPDATE ON 데이터베이스. 객체명 TO '사용자명'@'localhost|%';
+
+    -- 권환 해제
+    REVOKE ALL PRIVILEGES ON 데이터베이스.* FROM '사용자명'@'localhost|%';
+    ```
+
+#### MySQL 백업 복구
+- dump, restore
+    - *.sql 파일로 내보내기 - [쿼리](./day06/dump-madangdb-202603201615.sql)
+
+    ![alt text](image-23.png)
 
 ### MySQL 프로그래밍
 
-#### 프로시저
+#### 데이터베이스 프로그래밍
 
-#### 함수
+- 각 DB마다 프로그래밍 언어가 상이
+    - Oracle : `PL/SQL`
+    - SQL Server : T-SQL
+    - MySQL : MySQL Programming
+
+- 일반 프로그래밍 언어와 차이점 존재
+    - DB 전용 프로그램 개발
+
+- DBeaver에서는 SQL Editor로 프로시저, 함수 등이 잘 생성되지 않음
+    - DBeaver에 있는 전용 생성 위저드로 진행!
+
+- 개념
+    - 일반적인 프로그래밍과 유사
+    - 변수, 연산자, 조건문, 반복문 모두 존재
+
+- MySQL의 경우 함수 안정성 체크옵션으로 생성 불가 발생
+    - 관리자에서 실행
+
+    ```sql
+    -- 함수 안정성 체크 안함
+    SET GLOBAL log_bin_trust_function_creators = 1;
+    ```
+
+#### 사용자 정의 함수
+
+- 함수 - [쿼리1](./day06/7.FUNCTION_원형.sql), [쿼리2](./day06/6.FUNCTION.sql)
+    - 내장함수에 없는 기능의 함수를 추가로 개발하는 것
+    - 함수 파라미터, 리턴값이 존재
+
+#### 저장 프로시저
+
+#### 트리거
 
 ### C/C++에서 MySQL연동
 

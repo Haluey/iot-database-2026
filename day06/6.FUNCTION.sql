@@ -1,6 +1,6 @@
 -- root 관리자로 실행
 -- 함수 안정성 체크 안 함
-SET GLOBAL log_bin_trust_function_creators = 1;
+SET GLOBAL log_bin_trust_function_creators = 1;	-- ON으로도 가능
 
 -- 함수 사용, 스칼라 값
 SELECT o.orderid
